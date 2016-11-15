@@ -50,8 +50,9 @@ func GetContainerTags(c *docker.Container, a *LogstashAdapter) []string {
 	var tags = []string{}
 	for _, e := range c.Config.Env {
 		if strings.HasPrefix(e, "LOGSTASH_TAGS=") {
-			tags = strings.Split(strings.TrimPrefix(e, "LOGSTASH_TAGS="), ",")
-			break
+			tags = append(tags, strings.Split(strings.TrimPrefix(e, "LOGSTASH_TAGS="), ",")...)
+		} else if strings.HasPrefix(e, "MARATHON_APP_LABEL_") {
+			tags = append(tags, strings.Replace(strings.TrimPrefix(e, "MARATHON_APP_LABEL_"), "=", "_", -1))
 		}
 	}
 

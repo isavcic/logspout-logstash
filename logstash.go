@@ -175,10 +175,10 @@ type DockerInfo struct {
 
 // LogstashMessage is a simple JSON input to Logstash.
 type LogstashMessage struct {
-	Message  string             `json:"message"`
-	Stream   string             `json:"stream"`
-	Docker   DockerInfo         `json:"docker"`
-	Marathon *map[string]string `json:"marathon,omitempty"`
+	Message  string            `json:"message"`
+	Stream   string            `json:"stream"`
+	Docker   DockerInfo        `json:"docker"`
+	Marathon map[string]string `json:"marathon,omitempty"`
 	// Mesos    *map[string]string `json:"mesos,omitempty"`
 	Tags []string `json:"tags"`
 }

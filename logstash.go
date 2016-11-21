@@ -178,7 +178,7 @@ type LogstashMessage struct {
 	Message  string            `json:"message"`
 	Stream   string            `json:"stream"`
 	Docker   DockerInfo        `json:"docker"`
-	Marathon map[string]string `json:"marathon,omitempty"`
+	Marathon map[string]string `json:"marathon"`
 	// Mesos    *map[string]string `json:"mesos,omitempty"`
 	Tags []string `json:"tags"`
 }

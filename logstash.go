@@ -90,6 +90,7 @@ func GetMarathonInfo(c *docker.Container, a *LogstashAdapter) map[string]string 
 			kv := strings.Split(strings.TrimPrefix(e, "MARATHON_APP_LABEL_"), "=")
 			// k, v := kv[0], kv[1]
 			marathoninfo[kv[0]] = kv[1]
+			log.Println("logstash: Marathon info:", marathoninfo)
 		}
 	}
 

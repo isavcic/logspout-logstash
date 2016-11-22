@@ -20,7 +20,6 @@ type LogstashAdapter struct {
 	conn          net.Conn
 	route         *router.Route
 	containerTags map[string][]string
-	// marathonData  map[string]string
 }
 
 // NewLogstashAdapter creates a LogstashAdapter with UDP as the default transport.
@@ -39,29 +38,10 @@ func NewLogstashAdapter(route *router.Route) (router.LogAdapter, error) {
 		route:         route,
 		conn:          conn,
 		containerTags: make(map[string][]string),
-		// marathonData:  make(map[string]string),
 	}, nil
 }
 
 // Get container tags configured with the environment variable LOGSTASH_TAGS
-
-/*
-
-	"MARATHON_APP_VERSION=2016-10-20T13:25:13.627Z",
-	"MARATHON_APP_LABEL_ENVIRONMENT=prod",
-	"MARATHON_APP_RESOURCE_CPUS=0.01",
-	"MARATHON_APP_LABEL_VERSION=1.6",
-	"MARATHON_APP_DOCKER_IMAGE=ops-mesos-registry.vast.com:5000/vast-flapjack-notifier:1.6",
-	"MESOS_TASK_ID=flapjack-notifier.c101b8cd-a1ca-11e6-a07b-024232c1c875",
-	"MARATHON_APP_RESOURCE_MEM=128.0",
-	"MARATHON_APP_RESOURCE_DISK=0.0",
-	"MARATHON_APP_LABELS=VERSION
-	"MARATHON_APP_ID=/flapjack-notifier",
-	"MESOS_SANDBOX=/mnt/mesos/sandbox",
-	"MESOS_CONTAINER_NAME=mesos-04fb9b4e-ccdd-4884-b2b6-11c88c04760c-S14.9ef25b40-3d77-4dd9-b5b6-04b3bd02435b",
-
-*/
-
 func GetContainerTags(c *docker.Container, a *LogstashAdapter) []string {
 	if tags, ok := a.containerTags[c.ID]; ok {
 		return tags
@@ -70,9 +50,8 @@ func GetContainerTags(c *docker.Container, a *LogstashAdapter) []string {
 	var tags = []string{}
 	for _, e := range c.Config.Env {
 		if strings.HasPrefix(e, "LOGSTASH_TAGS=") {
-			tags = append(tags, strings.Split(strings.TrimPrefix(e, "LOGSTASH_TAGS="), ",")...)
-		} else if strings.HasPrefix(e, "MARATHON_APP_LABEL_") {
-			tags = append(tags, strings.Replace(strings.TrimPrefix(e, "MARATHON_APP_LABEL_"), "=", "_", -1))
+			tags = strings.Split(strings.TrimPrefix(e, "LOGSTASH_TAGS="), ",")
+			break
 		}
 	}
 
@@ -80,30 +59,62 @@ func GetContainerTags(c *docker.Container, a *LogstashAdapter) []string {
 	return tags
 }
 
-func GetMarathonData(c *docker.Container, a *LogstashAdapter) map[string]string {
-	// if marathonenv, ok := a.containerTags[c.ID]; ok {
-	// 	return marathonenv
+// func GetMarathonData(c *docker.Container, a *LogstashAdapter) map[string]string {
+//func GetMarathonData(c *docker.Container, a *LogstashAdapter) MarathonData {
+//func (c *docker.Container, a *LogstashAdapter, m *MarathonData) SetMarathonData() {
+func GetMarathonData(c *docker.Container, a *LogstashAdapter) MarathonData {
+
+	// type MarathonData struct {
+	// 	Version  string
+	// 	Resource map[string]string
+	// 	ID       string
+	// 	Label    map[string]string
+	//  Image    string
 	// }
 
-	marathondata := map[string]string{}
+	// marathondata := map[string]string{}
+	// var marathondata map[string]string
+	m := MarathonData
+
+	/*
+
+		"MARATHON_APP_VERSION=2016-10-20T13:25:13.627Z",
+		"MARATHON_APP_LABEL_ENVIRONMENT=prod",
+		"MARATHON_APP_RESOURCE_CPUS=0.01",
+		"MARATHON_APP_LABEL_VERSION=1.6",
+		"MARATHON_APP_DOCKER_IMAGE=ops-mesos-registry.vast.com:5000/vast-flapjack-notifier:1.6",
+		"MESOS_TASK_ID=flapjack-notifier.c101b8cd-a1ca-11e6-a07b-024232c1c875",
+		"MARATHON_APP_RESOURCE_MEM=128.0",
+		"MARATHON_APP_RESOURCE_DISK=0.0",
+		"MARATHON_APP_LABELS=VERSION
+		"MARATHON_APP_ID=/flapjack-notifier",
+		"MESOS_SANDBOX=/mnt/mesos/sandbox",
+		"MESOS_CONTAINER_NAME=mesos-04fb9b4e-ccdd-4884-b2b6-11c88c04760c-S14.9ef25b40-3d77-4dd9-b5b6-04b3bd02435b",
+
+	*/
 
 	for _, e := range c.Config.Env {
 		if strings.HasPrefix(e, "MARATHON_APP_LABEL_") {
 			kv := strings.Split(strings.TrimPrefix(e, "MARATHON_APP_LABEL_"), "=")
 			// k, v := kv[0], kv[1]
-			marathondata[kv[0]] = kv[1]
-			log.Println("logstash: Marathon info:", marathondata)
+			m.Label[kv[0]] = kv[1]
+			// log.Println("logstash: Marathon info:", marathondata)
+		} else if strings.HasPrefix(e, "MARATHON_APP_RESOURCE_CPUS=") {
+			m.Resource["cpus"] = strings.TrimPrefix(e, "MARATHON_APP_RESOURCE_CPUS=")
+		} else if strings.HasPrefix(e, "MARATHON_APP_RESOURCE_MEM=") {
+			m.Resource["mem"] = strings.TrimPrefix(e, "MARATHON_APP_RESOURCE_MEM=")
+		} else if strings.HasPrefix(e, "MARATHON_APP_RESOURCE_DISK=") {
+			m.Resource["disk"] = strings.TrimPrefix(e, "MARATHON_APP_RESOURCE_DISK=")
+		} else if strings.HasPrefix(e, "MARATHON_APP_ID=") {
+			m.ID = strings.TrimPrefix(e, "MARATHON_APP_ID=")
+		} else if strings.HasPrefix(e, "MARATHON_APP_VERSION=") {
+			m.Version = strings.TrimPrefix(e, "MARATHON_APP_VERSION=")
+		} else if strings.HasPrefix(e, "MARATHON_APP_DOCKER_IMAGE=") {
+			m.Image = strings.TrimPrefix(e, "MARATHON_APP_DOCKER_IMAGE=")
 		}
 	}
 
-	// marathonEnv := map[string]string{}
-	// mesosEnv := map[string]string{}
-	// populate marathonEnv
-	// populate mesosEnv
-	// a.containerTags[c.ID] = tags
-
-	// a.marathonData = marathondata
-	return marathondata
+	return m
 }
 
 // Stream implements the router.LogAdapter interface.
@@ -119,7 +130,7 @@ func (a *LogstashAdapter) Stream(logstream chan *router.Message) {
 		}
 
 		tags := GetContainerTags(m.Container, a)
-
+		// marathonData := GetMarathonData(m.Container, a)
 		marathonData := GetMarathonData(m.Container, a)
 
 		var js []byte
@@ -172,16 +183,44 @@ type DockerInfo struct {
 	Hostname string `json:"hostname"`
 }
 
-// type MarathonEnvs struct {
-// 	MarathonEnv *map[string]string
-// }
-
 // LogstashMessage is a simple JSON input to Logstash.
 type LogstashMessage struct {
-	Message  string            `json:"message"`
-	Stream   string            `json:"stream"`
-	Docker   DockerInfo        `json:"docker"`
-	Marathon map[string]string `json:"marathon"`
-	// Mesos    map[string]string `json:"mesos"`
-	Tags []string `json:"tags"`
+	Message string     `json:"message"`
+	Stream  string     `json:"stream"`
+	Docker  DockerInfo `json:"docker"`
+	// Marathon map[string]string `json:"marathon"`
+	Marathon MarathonData `json:"marathon,omitempty"`
+	Mesos    MesosData    `json:"mesos,omitempty"`
+	Tags     []string     `json:"tags"`
+}
+
+/*
+
+	"MARATHON_APP_VERSION=2016-10-20T13:25:13.627Z",
+	"MARATHON_APP_LABEL_ENVIRONMENT=prod",
+	"MARATHON_APP_RESOURCE_CPUS=0.01",
+	"MARATHON_APP_LABEL_VERSION=1.6",
+	"MARATHON_APP_DOCKER_IMAGE=ops-mesos-registry.vast.com:5000/vast-flapjack-notifier:1.6",
+	"MESOS_TASK_ID=flapjack-notifier.c101b8cd-a1ca-11e6-a07b-024232c1c875",
+	"MARATHON_APP_RESOURCE_MEM=128.0",
+	"MARATHON_APP_RESOURCE_DISK=0.0",
+	"MARATHON_APP_LABELS=VERSION
+	"MARATHON_APP_ID=/flapjack-notifier",
+	"MESOS_SANDBOX=/mnt/mesos/sandbox",
+	"MESOS_CONTAINER_NAME=mesos-04fb9b4e-ccdd-4884-b2b6-11c88c04760c-S14.9ef25b40-3d77-4dd9-b5b6-04b3bd02435b",
+
+*/
+
+type MarathonData struct {
+	Version  string
+	Resource map[string]string
+	ID       string
+	Label    map[string]string
+	Image    string
+}
+
+type MesosData struct {
+	Sandbox       string
+	ContainerName string
+	Task          string
 }

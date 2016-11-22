@@ -20,6 +20,7 @@ type LogstashAdapter struct {
 	conn          net.Conn
 	route         *router.Route
 	containerTags map[string][]string
+	marathonData  map[string]string
 }
 
 // NewLogstashAdapter creates a LogstashAdapter with UDP as the default transport.
@@ -38,6 +39,7 @@ func NewLogstashAdapter(route *router.Route) (router.LogAdapter, error) {
 		route:         route,
 		conn:          conn,
 		containerTags: make(map[string][]string),
+		marathonData:  make(map[string]string),
 	}, nil
 }
 
@@ -78,19 +80,19 @@ func GetContainerTags(c *docker.Container, a *LogstashAdapter) []string {
 	return tags
 }
 
-func GetMarathonInfo(c *docker.Container, a *LogstashAdapter) map[string]string {
+func GetMarathonData(c *docker.Container, a *LogstashAdapter) map[string]string {
 	// if marathonenv, ok := a.containerTags[c.ID]; ok {
 	// 	return marathonenv
 	// }
 
-	marathoninfo := map[string]string{}
+	marathondata := map[string]string{}
 
 	for _, e := range c.Config.Env {
 		if strings.HasPrefix(e, "MARATHON_APP_LABEL_") {
 			kv := strings.Split(strings.TrimPrefix(e, "MARATHON_APP_LABEL_"), "=")
 			// k, v := kv[0], kv[1]
-			marathoninfo[kv[0]] = kv[1]
-			log.Println("logstash: Marathon info:", marathoninfo)
+			marathondata[kv[0]] = kv[1]
+			log.Println("logstash: Marathon info:", marathondata)
 		}
 	}
 
@@ -100,7 +102,8 @@ func GetMarathonInfo(c *docker.Container, a *LogstashAdapter) map[string]string 
 	// populate mesosEnv
 	// a.containerTags[c.ID] = tags
 
-	return marathoninfo
+	a.marathonData = marathondata
+	return marathondata
 }
 
 // Stream implements the router.LogAdapter interface.
@@ -117,7 +120,7 @@ func (a *LogstashAdapter) Stream(logstream chan *router.Message) {
 
 		tags := GetContainerTags(m.Container, a)
 
-		marathonInfo := GetMarathonInfo(m.Container, a)
+		marathonData := GetMarathonData(m.Container, a)
 
 		var js []byte
 		var data map[string]interface{}
@@ -128,7 +131,7 @@ func (a *LogstashAdapter) Stream(logstream chan *router.Message) {
 			msg := LogstashMessage{
 				Message:  m.Data,
 				Docker:   dockerInfo,
-				Marathon: marathonInfo,
+				Marathon: marathonData,
 				Stream:   m.Source,
 				Tags:     tags,
 			}
@@ -143,7 +146,7 @@ func (a *LogstashAdapter) Stream(logstream chan *router.Message) {
 			data["docker"] = dockerInfo
 			data["tags"] = tags
 			data["stream"] = m.Source
-			data["marathon"] = marathonInfo
+			data["marathon"] = marathonData
 			// Return the JSON encoding
 			if js, err = json.Marshal(data); err != nil {
 				// Log error message and continue parsing next line, if marshalling fails

@@ -74,7 +74,7 @@ func GetMarathonData(c *docker.Container, a *LogstashAdapter) MarathonData {
 
 	// marathondata := map[string]string{}
 	// var marathondata map[string]string
-	m := MarathonData
+	m := MarathonData{}
 
 	/*
 

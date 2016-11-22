@@ -20,7 +20,7 @@ type LogstashAdapter struct {
 	conn          net.Conn
 	route         *router.Route
 	containerTags map[string][]string
-	marathonData  map[string]string
+	// marathonData  map[string]string
 }
 
 // NewLogstashAdapter creates a LogstashAdapter with UDP as the default transport.
@@ -39,7 +39,7 @@ func NewLogstashAdapter(route *router.Route) (router.LogAdapter, error) {
 		route:         route,
 		conn:          conn,
 		containerTags: make(map[string][]string),
-		marathonData:  make(map[string]string),
+		// marathonData:  make(map[string]string),
 	}, nil
 }
 
@@ -102,7 +102,7 @@ func GetMarathonData(c *docker.Container, a *LogstashAdapter) map[string]string 
 	// populate mesosEnv
 	// a.containerTags[c.ID] = tags
 
-	a.marathonData = marathondata
+	// a.marathonData = marathondata
 	return marathondata
 }
 

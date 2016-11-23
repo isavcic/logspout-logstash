@@ -62,7 +62,7 @@ func GetContainerTags(c *docker.Container, a *LogstashAdapter) []string {
 // func GetMarathonData(c *docker.Container, a *LogstashAdapter) map[string]string {
 //func GetMarathonData(c *docker.Container, a *LogstashAdapter) MarathonData {
 //func (m *MarathonData) GetMarathonData(c *docker.Container, a *LogstashAdapter) {
-func GetMarathonData(c *docker.Container, a *LogstashAdapter) *MarathonData {
+func GetMarathonData(c *docker.Container) *MarathonData {
 
 	// type MarathonData struct {
 	// 	Version  string
@@ -132,7 +132,7 @@ func (a *LogstashAdapter) Stream(logstream chan *router.Message) {
 		tags := GetContainerTags(m.Container, a)
 		//marathonData := &MarathonData{}
 		//marathonData.GetMarathonData(m.Container, a)
-		marathonData := GetMarathonData(m.Container, a)
+		marathonData := GetMarathonData(m.Container)
 
 		var js []byte
 		var data map[string]interface{}
@@ -158,7 +158,7 @@ func (a *LogstashAdapter) Stream(logstream chan *router.Message) {
 			data["docker"] = dockerInfo
 			data["tags"] = tags
 			data["stream"] = m.Source
-			data["marathon"] = marathonData
+			data["marathon"] = *marathonData
 			// Return the JSON encoding
 			if js, err = json.Marshal(data); err != nil {
 				// Log error message and continue parsing next line, if marshalling fails
@@ -191,8 +191,8 @@ type LogstashMessage struct {
 	Docker  DockerInfo `json:"docker"`
 	// Marathon map[string]string `json:"marathon"`
 	Marathon MarathonData `json:"marathon,omitempty"`
-	Mesos    MesosData    `json:"mesos,omitempty"`
-	Tags     []string     `json:"tags"`
+	// Mesos    MesosData    `json:"mesos,omitempty"`
+	Tags []string `json:"tags"`
 }
 
 /*
@@ -220,8 +220,8 @@ type MarathonData struct {
 	Image    string
 }
 
-type MesosData struct {
-	Sandbox       string
-	ContainerName string
-	Task          string
-}
+// type MesosData struct {
+// 	Sandbox       string
+// 	ContainerName string
+// 	Task          string
+// }

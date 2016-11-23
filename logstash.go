@@ -61,8 +61,8 @@ func GetContainerTags(c *docker.Container, a *LogstashAdapter) []string {
 
 // func GetMarathonData(c *docker.Container, a *LogstashAdapter) map[string]string {
 //func GetMarathonData(c *docker.Container, a *LogstashAdapter) MarathonData {
-func (m *MarathonData) GetMarathonData(c *docker.Container, a *LogstashAdapter) {
-	// func GetMarathonData(c *docker.Container, a *LogstashAdapter) MarathonData {
+//func (m *MarathonData) GetMarathonData(c *docker.Container, a *LogstashAdapter) {
+func GetMarathonData(c *docker.Container, a *LogstashAdapter) MarathonData {
 
 	// type MarathonData struct {
 	// 	Version  string
@@ -74,7 +74,7 @@ func (m *MarathonData) GetMarathonData(c *docker.Container, a *LogstashAdapter) 
 
 	// marathondata := map[string]string{}
 	// var marathondata map[string]string
-	// m := MarathonData{}
+	m := MarathonData{}
 
 	/*
 
@@ -114,7 +114,7 @@ func (m *MarathonData) GetMarathonData(c *docker.Container, a *LogstashAdapter) 
 		}
 	}
 
-	// return m
+	return m
 }
 
 // Stream implements the router.LogAdapter interface.
@@ -130,9 +130,9 @@ func (a *LogstashAdapter) Stream(logstream chan *router.Message) {
 		}
 
 		tags := GetContainerTags(m.Container, a)
-		// marathonData := GetMarathonData(m.Container, a)
-		marathonData := MarathonData{}
-		marathonData.GetMarathonData(m.Container, a)
+		//marathonData := &MarathonData{}
+		//marathonData.GetMarathonData(m.Container, a)
+		marathonData := GetMarathonData(m.Container, a)
 
 		var js []byte
 		var data map[string]interface{}

@@ -62,8 +62,8 @@ func GetContainerTags(c *docker.Container, a *LogstashAdapter) []string {
 func GetMarathonData(c *docker.Container) MarathonData {
 
 	m := MarathonData{
-		resource: make(map[string]string),
-		label:    make(map[string]string),
+		Resource: make(map[string]string),
+		Label:    make(map[string]string),
 	}
 	/*
 
@@ -86,20 +86,20 @@ func GetMarathonData(c *docker.Container) MarathonData {
 		if strings.HasPrefix(e, "MARATHON_APP_LABEL_") {
 			kv := strings.Split(strings.TrimPrefix(e, "MARATHON_APP_LABEL_"), "=")
 			// k, v := kv[0], kv[1]
-			m.label[kv[0]] = kv[1]
+			m.Label[kv[0]] = kv[1]
 			// log.Println("logstash: Marathon info:", marathondata)
 		} else if strings.HasPrefix(e, "MARATHON_APP_RESOURCE_CPUS=") {
-			m.resource["cpus"] = strings.TrimPrefix(e, "MARATHON_APP_RESOURCE_CPUS=")
+			m.Resource["cpus"] = strings.TrimPrefix(e, "MARATHON_APP_RESOURCE_CPUS=")
 		} else if strings.HasPrefix(e, "MARATHON_APP_RESOURCE_MEM=") {
-			m.resource["mem"] = strings.TrimPrefix(e, "MARATHON_APP_RESOURCE_MEM=")
+			m.Resource["mem"] = strings.TrimPrefix(e, "MARATHON_APP_RESOURCE_MEM=")
 		} else if strings.HasPrefix(e, "MARATHON_APP_RESOURCE_DISK=") {
-			m.resource["disk"] = strings.TrimPrefix(e, "MARATHON_APP_RESOURCE_DISK=")
+			m.Resource["disk"] = strings.TrimPrefix(e, "MARATHON_APP_RESOURCE_DISK=")
 		} else if strings.HasPrefix(e, "MARATHON_APP_ID=") {
-			m.id = strings.TrimPrefix(e, "MARATHON_APP_ID=")
+			m.ID = strings.TrimPrefix(e, "MARATHON_APP_ID=")
 		} else if strings.HasPrefix(e, "MARATHON_APP_VERSION=") {
-			m.version = strings.TrimPrefix(e, "MARATHON_APP_VERSION=")
+			m.Version = strings.TrimPrefix(e, "MARATHON_APP_VERSION=")
 		} else if strings.HasPrefix(e, "MARATHON_APP_DOCKER_IMAGE=") {
-			m.image = strings.TrimPrefix(e, "MARATHON_APP_DOCKER_IMAGE=")
+			m.Image = strings.TrimPrefix(e, "MARATHON_APP_DOCKER_IMAGE=")
 		}
 	}
 
@@ -200,11 +200,11 @@ type LogstashMessage struct {
 */
 
 type MarathonData struct {
-	version  string
-	resource map[string]string
-	id       string
-	label    map[string]string
-	image    string
+	Version  string            `json:"version,omitempty"`
+	Resource map[string]string `json:"resource,omitempty"`
+	ID       string            `json:"id,omitempty"`
+	Label    map[string]string `json:"label,omitempty"`
+	Image    string            `json:"image,omitempty"`
 }
 
 // type MesosData struct {

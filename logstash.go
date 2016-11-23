@@ -59,21 +59,8 @@ func GetContainerTags(c *docker.Container, a *LogstashAdapter) []string {
 	return tags
 }
 
-// func GetMarathonData(c *docker.Container, a *LogstashAdapter) map[string]string {
-//func GetMarathonData(c *docker.Container, a *LogstashAdapter) MarathonData {
-//func (m *MarathonData) GetMarathonData(c *docker.Container, a *LogstashAdapter) {
 func GetMarathonData(c *docker.Container) MarathonData {
 
-	// type MarathonData struct {
-	// 	Version  string
-	// 	Resource map[string]string
-	// 	ID       string
-	// 	Label    map[string]string
-	//  Image    string
-	// }
-
-	// marathondata := map[string]string{}
-	// var marathondata map[string]string
 	m := MarathonData{
 		Resource: make(map[string]string),
 		Label:    make(map[string]string),
@@ -132,8 +119,6 @@ func (a *LogstashAdapter) Stream(logstream chan *router.Message) {
 		}
 
 		tags := GetContainerTags(m.Container, a)
-		//marathonData := &MarathonData{}
-		//marathonData.GetMarathonData(m.Container, a)
 		marathonData := GetMarathonData(m.Container)
 
 		var js []byte

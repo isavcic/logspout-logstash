@@ -62,7 +62,7 @@ func GetContainerTags(c *docker.Container, a *LogstashAdapter) []string {
 // func GetMarathonData(c *docker.Container, a *LogstashAdapter) map[string]string {
 //func GetMarathonData(c *docker.Container, a *LogstashAdapter) MarathonData {
 //func (m *MarathonData) GetMarathonData(c *docker.Container, a *LogstashAdapter) {
-func GetMarathonData(c *docker.Container) *MarathonData {
+func GetMarathonData(c *docker.Container) MarathonData {
 
 	// type MarathonData struct {
 	// 	Version  string
@@ -74,8 +74,10 @@ func GetMarathonData(c *docker.Container) *MarathonData {
 
 	// marathondata := map[string]string{}
 	// var marathondata map[string]string
-	m := new(MarathonData)
-
+	m := MarathonData{
+		Resource: make(map[string]string),
+		Label:    make(map[string]string),
+	}
 	/*
 
 		"MARATHON_APP_VERSION=2016-10-20T13:25:13.627Z",
@@ -143,7 +145,7 @@ func (a *LogstashAdapter) Stream(logstream chan *router.Message) {
 			msg := LogstashMessage{
 				Message:  m.Data,
 				Docker:   dockerInfo,
-				Marathon: *marathonData,
+				Marathon: marathonData,
 				Stream:   m.Source,
 				Tags:     tags,
 			}
@@ -158,7 +160,7 @@ func (a *LogstashAdapter) Stream(logstream chan *router.Message) {
 			data["docker"] = dockerInfo
 			data["tags"] = tags
 			data["stream"] = m.Source
-			data["marathon"] = *marathonData
+			data["marathon"] = marathonData
 			// Return the JSON encoding
 			if js, err = json.Marshal(data); err != nil {
 				// Log error message and continue parsing next line, if marshalling fails
